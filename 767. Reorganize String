@@ -1,0 +1,85 @@
+class Solution {
+ public:
+  string reorganizeString(string s) {
+    unordered_map<char, int> count;
+    int maxFreq = 0;
+
+    for (const char c : s)
+      maxFreq = max(maxFreq, ++count[c]);
+
+    if (maxFreq > (s.length() + 1) / 2)
+      return "";
+
+    string ans;
+    priority_queue<pair<int, char>> maxHeap;  // (freq, c)
+    int prevFreq = 0;
+    char prevChar = '@';
+
+    for (const auto& [c, freq] : count)
+      maxHeap.emplace(freq, c);
+
+    while (!maxHeap.empty()) {
+      // Get the most freq letter.
+      const auto [freq, c] = maxHeap.top();
+      maxHeap.pop();
+      ans += c;
+      // Add the previous letter back so that any two adjacent characters are
+      // not the same.
+      if (prevFreq > 0)
+        maxHeap.emplace(prevFreq, prevChar);
+      prevFreq = freq - 1;
+      prevChar = c;
+    }
+
+    return ans;
+  }
+};
+
+
+
+// 2nd approach 
+// time compelexity for both approach is same : O(n)
+
+
+class Solution {
+ public:
+  string reorganizeString(string s) {
+    const int n = s.length();
+    vector<int> count(128);
+    char maxChar = 'a' - 1;
+
+    for (const char c : s)
+      ++count[c];
+
+    for (char c = 'a'; c <= 'z'; ++c)
+      if (count[c] > count[maxChar])
+        maxChar = c;
+
+    if (count[maxChar] > (n + 1) / 2)
+      return "";
+
+    string ans(n, ' ');
+    int i = 0;  // ans's index
+
+    auto fillIn = [&](char c) {
+      ans[i] = c;
+      i += 2;
+      if (i >= n)  // Out of bound, reset the index to 1.
+        i = 1;
+    };
+
+    // Fill in 0, 2, 4, ... indices with the maxCount char.
+    while (count[maxChar]-- > 0)
+      fillIn(maxChar);
+
+    // Fill in remaining characters.
+    for (char c = 'a'; c <= 'z'; ++c)
+      while (count[c] > 0) {
+        --count[c];
+        fillIn(c);
+      }
+
+    return ans;
+  }
+};
+
